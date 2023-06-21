@@ -202,10 +202,14 @@ public class RedisJobSchedulerStore extends ServiceSupport implements JobSchedul
 
 			RedisJob job = null;
 
-			if(null != filter) {
-				job = filter.filter(bucket);
-			} else {
-				job = bucket.get();
+			try {
+				if(null != filter) {
+					job = filter.filter(bucket);
+				} else {
+					job = bucket.get();
+				}
+			} catch(Exception e) {
+				LOG.warn("Unable to get redis job. Skipping.", e);
 			}
 
 			if(null == job) {
