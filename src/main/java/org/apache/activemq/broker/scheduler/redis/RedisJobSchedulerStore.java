@@ -209,11 +209,11 @@ public class RedisJobSchedulerStore extends ServiceSupport implements JobSchedul
 					job = bucket.get();
 				}
 			} catch(Exception e) {
-				LOG.warn("Unable to get redis job. Skipping.", e);
+				LOG.warn("Unable to get redis job {}. Skipping.", key, e);
 			}
 
 			if(null == job) {
-				LOG.debug("Redis job {} filtered out", job.getJobId());
+				LOG.debug("Redis job {} filtered out", key);
 				continue;
 			}
 
