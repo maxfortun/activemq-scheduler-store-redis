@@ -1,16 +1,12 @@
-# Redis persistance store
-Implementation of a persistance store using [Redisson](https://github.com/redisson/redisson/wiki/Table-of-Content).
+### Premise
+[ActiveMQ Scheduler](https://activemq.apache.org/delay-and-schedule-message-delivery) persistence comes with a [KahaDb](https://activemq.apache.org/kahadb) implementation, which mostly works great, but it does require a shared file system for the [HA](https://activemq.apache.org/shared-file-system-master-slave) architectures. Shared file systems are fanous for generally being slow. If we add a DR scenario, where we have a primary activemq cluster in one region and a secondary activemq cluster in another region - file level replication, like rsync, of KahaDb files between such regions just does not work, and the secondary broker ends up with an inconsistent state.  
 
-## Motivation
-To provide a multi-region persistance for HA and DR purposes. Redis supports [replication](https://redis.io/topics/replication) and is well suited for multi-region architectures. 
+If only we could move the scheduler persistence outside of the broker process and into something that supports replication...
 
-## Multi-region failover
-A CNAME can be set and changed to point to the active region's address. When a region stops being active and write operations fail the client will resolve CNAME again and reconnect to the newly active region.  
+### Redis
+[Redis](https://redis.io) is a well known in-memory data store that is rather performant, and supports [persistence](https://redis.io/docs/management/persistence/) and [replication](https://redis.io/topics/replication), which makes it well suited for multi-region architectures. 
 
-## persistenceAdapter
-Not implemented
-
-## jobSchedulerStore
+This project is a JobSchedulerStore implementation with [Redisson](https://github.com/redisson/redisson).
 
 ### Loading from redis
 Scheduled messages are loaded from redis when broker becomes active.   
@@ -21,8 +17,6 @@ Scheduled messages are stored into redis as they are scheduled on the broker.
 ### Expiration
 Stored scheduled messages are set to expire at the time they are scheduled for.  
 In addition a filter can be set to drop messages that have already expired.  
-
-### Configuration
 
 #### Url format
 `schema`://`address`:`port`.   
@@ -36,7 +30,7 @@ When redis hostname does not match the one in a certificate the connection will 
 #### Filtering retrieved messages
 When scheduler retrieves stored messages it is possible that they have already expired and may need to be filtered out. To achieve that set `filterFactory` to an instance of `org.apache.activemq.broker.scheduler.redis.RedisJobSchedulerStoreFilterExpiredFactory`.   
 
-#### Sample broker configuration
+#### Broker configuration
 ```xml
 <beans
   xmlns="http://www.springframework.org/schema/beans"
